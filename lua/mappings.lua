@@ -9,6 +9,7 @@ local bm = require "bookmarks"
 local undo = require("undotree")
 local gitsigns = require("gitsigns")
 local hop = require('hop')
+local dap = require('dap')
 
 
 local conf = require("telescope.config").values
@@ -70,11 +71,15 @@ vim.keymap.del("n", "<leader>ma") -- telescope find marks
 map("n", "<leader><Tab>", ":b#<cr>", { desc = "Last active buffer" })
 map('n', 'L', "$")
 map('n', 'H', "^")
-map({'n', 'v'}, '<leader>y', '"*y', { desc = "Yank to system clipboard" })
-map({'n', 'v'}, '<leader>p', '"*p', { desc = "Paste from system clipboard" })
+map({ 'n', 'v' }, '<leader>y', '"*y', { desc = "Yank to system clipboard" })
+map({ 'n', 'v' }, '<leader>p', '"*p', { desc = "Paste from system clipboard" })
 
 --copilot
 -- map('i', '<tab>', 'copilot#Accept("\\<CR>")', {
+map('i', '<C-o>', 'copilot#Accept()', {
+  expr = true,
+  replace_keycodes = false
+})
 map('i', '<tab>', 'copilot#Accept()', {
   expr = true,
   replace_keycodes = false
@@ -88,16 +93,16 @@ map('i', '<C-h>', "<Plug>(copilot-suggest)")
 local directions = require('hop.hint').HintDirection
 vim.keymap.set('', 'f', function()
   hop.hint_char1({ direction = directions.AFTER_CURSOR, current_line_only = true })
-end, {remap=true})
+end, { remap = true })
 vim.keymap.set('', 'F', function()
   hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true })
-end, {remap=true})
+end, { remap = true })
 vim.keymap.set('', 't', function()
   hop.hint_char1({ direction = directions.AFTER_CURSOR, current_line_only = true, hint_offset = -1 })
-end, {remap=true})
+end, { remap = true })
 vim.keymap.set('', 'T', function()
   hop.hint_char1({ direction = directions.BEFORE_CURSOR, current_line_only = true, hint_offset = 1 })
-end, {remap=true})
+end, { remap = true })
 
 
 --groups
@@ -202,6 +207,17 @@ wk.register({
       r = { vim.lsp.buf.rename, "rename" },
       t = { ":SymbolsOutline<cr>", "tag tree" },
       g = { name = "generate", d = { ":DogeGenerate Sphynx<cr>", "docstring" } },
+      s = {
+        name = "go struct tags",
+        j = { ":GoTagAdd json<cr>", "json struct" },
+        y = { ":GoTagAdd yaml<cr>", "yaml struct" },
+        r = { ":GoTagRm<cr>", "remove struct" }
+      },
+      u = {
+        name = "unit tests",
+        u = { ":GoTestAdd<cr>", "add test" },
+        a = { ":GoTestsAll<cr>", "add all test" },
+      },
     },
 
     b = {
@@ -212,6 +228,42 @@ wk.register({
       q = { ":BufferClose<cr>", "close" },
       r = { ":BufferRestore<cr>", "restore" },
       b = { ":BufferPick<cr>", "pick buffer" }
+    },
+
+    d = {
+      name = "debug",
+      b = { dap.toggle_breakpoint, "toggle breakpoint" },
+      c = { dap.continue, "continue" },
+      s = { dap.step_over, "step over" },
+      i = { dap.step_into, "step into" },
+      o = { dap.step_out, "step out" },
+      r = { dap.repl.open, "repl" },
+      l = { dap.run_last, "run last" },
+      u = {
+        function()
+          local widgets = require('dap.ui.widgets')
+          local sidebar = widgets.sidebar(widgets.scopes)
+          sidebar.open()
+        end,
+        "scopes"
+      },
+    },
+
+    o = {
+      "chatGPT",
+      c = { "<cmd>ChatGPT<CR>", "ChatGPT" },
+      e = { "<cmd>ChatGPTEditWithInstruction<CR>", "Edit with instruction", mode = { "n", "v" } },
+      g = { "<cmd>ChatGPTRun grammar_correction<CR>", "Grammar Correction", mode = { "n", "v" } },
+      t = { "<cmd>ChatGPTRun translate<CR>", "Translate", mode = { "n", "v" } },
+      k = { "<cmd>ChatGPTRun keywords<CR>", "Keywords", mode = { "n", "v" } },
+      d = { "<cmd>ChatGPTRun docstring<CR>", "Docstring", mode = { "n", "v" } },
+      a = { "<cmd>ChatGPTRun add_tests<CR>", "Add Tests", mode = { "n", "v" } },
+      o = { "<cmd>ChatGPTRun optimize_code<CR>", "Optimize Code", mode = { "n", "v" } },
+      s = { "<cmd>ChatGPTRun summarize<CR>", "Summarize", mode = { "n", "v" } },
+      f = { "<cmd>ChatGPTRun fix_bugs<CR>", "Fix Bugs", mode = { "n", "v" } },
+      x = { "<cmd>ChatGPTRun explain_code<CR>", "Explain Code", mode = { "n", "v" } },
+      r = { "<cmd>ChatGPTRun roxygen_edit<CR>", "Roxygen Edit", mode = { "n", "v" } },
+      l = { "<cmd>ChatGPTRun code_readability_analysis<CR>", "Code Readability Analysis", mode = { "n", "v" } },
     },
 
     ["1"] = { ":BufferGoto 1<cr>", "buffer 1" },
@@ -226,7 +278,6 @@ wk.register({
   },
   { prefix = "<leader>" }
 )
-
 --rm macro record from q
 map('n', 'q', '<Nop>')
 map('n', 'q', ':q<cr>')
